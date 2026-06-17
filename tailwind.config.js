@@ -7,14 +7,15 @@ export default {
         xs: "390px",
       },
       colors: {
-        charcoal: "#0a0a0a",
-        steel: "#1a1a1a",
-        cream: "#e8e4dc",
-        gold: "#c9a96e",
+        charcoal: "#1a1f2e",
+        steel: "#141824",
+        cream: "#f8f7f5",
+        gold: "#d4af37",
+        blueGrey: "#8b9dc3",
       },
       fontFamily: {
-        display: ["Cormorant Garamond", "Georgia", "serif"],
-        ui: ["Montserrat", "system-ui", "sans-serif"],
+        display: ["Playfair Display", "Georgia", "serif"],
+        body: ["Lato", "system-ui", "sans-serif"],
       }
     }
   },
