@@ -33,17 +33,12 @@ export default function Sidebar({ isOpen, onOpen, onClose, activeSection, onNavi
         onClick={isOpen ? onClose : onOpen}
         aria-label={isOpen ? "Close menu" : "Open menu"}
         aria-expanded={isOpen}
+        style={{ display: isOpen ? "none" : "flex" }}
       >
         <span className="hamburger-line" />
         <span className="hamburger-line" />
         <span className="hamburger-line" />
       </button>
-
-      <div
-        className={`sidebar-overlay ${isOpen ? "visible" : ""}`}
-        onClick={onClose}
-        aria-hidden="true"
-      />
 
       <nav
         className={`sidebar ${isOpen ? "open" : ""}`}

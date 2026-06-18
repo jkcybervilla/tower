@@ -326,7 +326,7 @@ export default function App() {
           trigger: scrollSceneRef.current,
           start: "top top",
           end: scrollDistance,
-          scrub: 1,
+          scrub: 5,
           pin: true,
           pinSpacing: true,
           anticipatePin: 1,

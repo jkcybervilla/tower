@@ -310,9 +310,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  background:transparent;
-  backdrop-filter: none;
-  
+  background: transparent;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
 }
@@ -345,9 +343,13 @@ body {
 
 /* ── Sidebar Overlay ── */
 .sidebar-overlay {
- background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  transition: opacity 0.5s ease;
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
 }
 
 .sidebar-overlay.visible {
@@ -355,7 +357,7 @@ body {
   pointer-events: auto;
 }
 
-/* ── Sidebar Panel ── */
+/* ── Sidebar Panel (Frosted Glass) ── */
 .sidebar {
   position: fixed;
   top: 0;
@@ -364,14 +366,16 @@ body {
   width: min(380px, 85vw);
   height: 100vh;
   height: 100dvh;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(40px);
+  background: rgba(15, 18, 28, 0.65);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
   box-shadow: -8px 0 40px rgba(0, 0, 0, 0.3);
   transform: translateX(100%);
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
   flex-direction: column;
   padding: 2rem 0;
+  will-change: transform;
 }
 
 @media (max-width: 360px) {
@@ -384,14 +388,14 @@ body {
   }
 
   .sidebar-link {
-   font-family: "Montserrat", sans-serif; /* বা রোলস রয়েসের মতো Serif ফন্ট চাইলে 'Cormorant Garamond' দিন */
-  font-size: 2rem; /* বড় ফন্ট সাইজ */
-  font-weight: 300;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
-  padding: 1.5rem 4rem; /* অনেক বেশি জায়গা */
-  transition: all 0.4s ease;
+    font-family: "Montserrat", sans-serif;
+    font-size: 2rem;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 1.5rem 4rem;
+    transition: all 0.4s ease;
   }
 
   .sidebar-nav {
@@ -449,6 +453,27 @@ body {
   flex: 1;
 }
 
+/* Stagger animation for nav items when sidebar opens */
+.sidebar.open .sidebar-nav li {
+  opacity: 0;
+  transform: translateX(20px);
+  animation: sidebarItemIn 0.4s ease forwards;
+}
+
+.sidebar.open .sidebar-nav li:nth-child(1) { animation-delay: 0.08s; }
+.sidebar.open .sidebar-nav li:nth-child(2) { animation-delay: 0.14s; }
+.sidebar.open .sidebar-nav li:nth-child(3) { animation-delay: 0.20s; }
+.sidebar.open .sidebar-nav li:nth-child(4) { animation-delay: 0.26s; }
+.sidebar.open .sidebar-nav li:nth-child(5) { animation-delay: 0.32s; }
+.sidebar.open .sidebar-nav li:nth-child(6) { animation-delay: 0.38s; }
+
+@keyframes sidebarItemIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .sidebar-link {
   display: flex;
   align-items: center;
@@ -457,19 +482,19 @@ body {
   padding: 1rem 2rem;
   background: none;
   border: none;
-  font-family:"Montserrat", sans-serif;;
+  font-family: "Montserrat", sans-serif;
   font-size: 1.125rem;
   font-weight: 400;
   color: rgba(248, 247, 245, 0.7);
   cursor: pointer;
   text-align: left;
-  transition: color 0.18s, background 0.18s;
+  transition: color 0.18s, background 0.18s, padding-left 0.3s ease;
   min-height: 48px;
 }
 
 .sidebar-link:hover {
   color: var(--gold);
-  padding-left: 5rem; /* হোভার করলে বাম দিকে স্লাইড হবে */
+  padding-left: 2.5rem;
   background: transparent;
 }
 
