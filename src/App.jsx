@@ -75,8 +75,10 @@ export default function App() {
     const video = videoRef.current;
     if (!video || !scrollSceneRef.current) return;
 
-    let scrubTween, scrollTriggerInstance, progressRaf = 0;
+    let scrubTween, progressRaf = 0;
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    const renderState = { currentTime: 0 };
+    let syncTicker;
 
     const showStage = (nextStage) => {
   if (activeStageRef.current === nextStage) return;
@@ -312,89 +314,43 @@ export default function App() {
         gsap.set(manpowerRef.current, { autoAlpha: 0, y: 50, display: 'none' });
       }
 
-      if (isMobile) {
-        /* ── Mobile: no scroll-scrub — play on scroll, pause on stop ── */
-        let scrollTimer = null;
-        const SCROLL_STOP_DELAY = 200;
+      const duration = video.duration || 1;
+      renderState.currentTime = 0;
 
-        scrollTriggerInstance = ScrollTrigger.create({
+      /* ── Unified proxy-based approach: GSAP scrubs renderState.currentTime ── */
+      scrubTween = gsap.to(renderState, {
+        currentTime: duration,
+        ease: "none",
+        scrollTrigger: {
           trigger: scrollSceneRef.current,
           start: "top top",
-          end: "+=3500",
+          end: isMobile ? "+=3500" : "+=5000",
+          scrub: isMobile ? 3.5 : 1,
           pin: true,
           pinSpacing: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
+          fastScrollEnd: !isMobile,
           onEnter: () => { inVideoRef.current = true; },
-          onLeave: () => {
-            inVideoRef.current = false;
-            video.pause();
-            if (scrollTimer) { clearTimeout(scrollTimer); scrollTimer = null; }
-          },
+          onLeave: () => { inVideoRef.current = false; },
           onEnterBack: () => { inVideoRef.current = true; },
-          onUpdate: (self) => {
-            updateByProgress(self.progress);
+          onUpdate: (self) => updateByProgress(self.progress),
+        },
+      });
 
-            if (self.direction > 0) {
-              /* Scrolling down — play video, cancel pending pause */
-              if (scrollTimer) {
-                clearTimeout(scrollTimer);
-                scrollTimer = null;
-              }
-              video.play().catch(() => {});
-            } else {
-              /* Scrolling stopped or going up — schedule pause after delay */
-              if (!scrollTimer) {
-                scrollTimer = setTimeout(() => {
-                  video.pause();
-                  scrollTimer = null;
-                }, SCROLL_STOP_DELAY);
-              }
-            }
-          },
-        });
+      /* ── Continuous ticker: sync video to proxy with 0.01 threshold guard ── */
+      syncTicker = () => {
+        if (video.readyState < 2) return;
+        const diff = Math.abs(video.currentTime - renderState.currentTime);
+        if (diff > 0.01) {
+          video.currentTime = renderState.currentTime;
+        }
+      };
+      gsap.ticker.add(syncTicker);
 
-        video.currentTime = 0.001;
-        setTimeout(() => { ScrollTrigger.refresh(); }, 200);
-      } else {
-        /* ── Desktop: exact GSAP scroll scrub logic (unchanged) ── */
-        const duration = video.duration || 1;
-        const playhead = { time: 0 };
-
-        let lastVideoTime = -1;
-
-        scrubTween = gsap.to(playhead, {
-          time: duration,
-          ease: "none",
-          onUpdate: () => {
-            if (video.readyState < 2) return;
-            const diff = Math.abs(playhead.time - lastVideoTime);
-            if (diff > 0.003) {
-              lastVideoTime = playhead.time;
-              video.currentTime = playhead.time;
-            }
-          },
-          scrollTrigger: {
-            trigger: scrollSceneRef.current,
-            start: "top top",
-            end: "+=5000",
-            scrub: 1,
-            pin: true,
-            pinSpacing: true,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-            fastScrollEnd: true,
-            onEnter: () => { inVideoRef.current = true; },
-            onLeave: () => { inVideoRef.current = false; },
-            onEnterBack: () => { inVideoRef.current = true; },
-            onUpdate: (self) => updateByProgress(self.progress),
-          },
-        });
-
-        setTimeout(() => {
-          ScrollTrigger.refresh();
-        }, 200);
-      }
+      setTimeout(() => {
+        ScrollTrigger.refresh();
+      }, 200);
     };
 
     const onLoadedMetadata = () => {
@@ -402,6 +358,7 @@ export default function App() {
       video.currentTime = 0.001;
       setTimeout(() => { 
         video.currentTime = 0; 
+        renderState.currentTime = 0;
         buildTimeline();
       }, 50);
     };
@@ -418,8 +375,8 @@ export default function App() {
       if (progressRaf) cancelAnimationFrame(progressRaf);
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
       window.removeEventListener("resize", handleResize);
+      if (syncTicker) gsap.ticker.remove(syncTicker);
       if (scrubTween) scrubTween.kill();
-      if (scrollTriggerInstance) scrollTriggerInstance.kill();
     };
   }, []);
 
