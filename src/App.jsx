@@ -75,7 +75,7 @@ export default function App() {
     const video = videoRef.current;
     if (!video || !scrollSceneRef.current) return;
 
-    let scrubTween, progressRaf = 0;
+    let scrubTween, scrollTriggerInstance, progressRaf = 0;
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
     const showStage = (nextStage) => {
@@ -312,44 +312,89 @@ export default function App() {
         gsap.set(manpowerRef.current, { autoAlpha: 0, y: 50, display: 'none' });
       }
 
-      const duration = video.duration || 1;
-      const playhead = { time: 0 };
+      if (isMobile) {
+        /* ── Mobile: no scroll-scrub — play on scroll, pause on stop ── */
+        let scrollTimer = null;
+        const SCROLL_STOP_DELAY = 200;
 
-      const scrollDistance = isMobile ? "+=3500" : "+=5000";
-
-      let lastVideoTime = -1;
-
-      scrubTween = gsap.to(playhead, {
-        time: duration,
-        ease: "none",
-        onUpdate: () => {
-          if (video.readyState < 2) return;
-          const diff = Math.abs(playhead.time - lastVideoTime);
-          if (diff > 0.003) {
-            lastVideoTime = playhead.time;
-            video.currentTime = playhead.time;
-          }
-        },
-        scrollTrigger: {
+        scrollTriggerInstance = ScrollTrigger.create({
           trigger: scrollSceneRef.current,
           start: "top top",
-          end: scrollDistance,
-          scrub: isMobile ? 2.5 : 1,
+          end: "+=3500",
           pin: true,
           pinSpacing: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
-          fastScrollEnd: true,
           onEnter: () => { inVideoRef.current = true; },
-          onLeave: () => { inVideoRef.current = false; },
+          onLeave: () => {
+            inVideoRef.current = false;
+            video.pause();
+            if (scrollTimer) { clearTimeout(scrollTimer); scrollTimer = null; }
+          },
           onEnterBack: () => { inVideoRef.current = true; },
-          onUpdate: (self) => updateByProgress(self.progress),
-        },
-      });
+          onUpdate: (self) => {
+            updateByProgress(self.progress);
 
-      setTimeout(() => {
-        ScrollTrigger.refresh();
-      }, 200);
+            if (self.direction > 0) {
+              /* Scrolling down — play video, cancel pending pause */
+              if (scrollTimer) {
+                clearTimeout(scrollTimer);
+                scrollTimer = null;
+              }
+              video.play().catch(() => {});
+            } else {
+              /* Scrolling stopped or going up — schedule pause after delay */
+              if (!scrollTimer) {
+                scrollTimer = setTimeout(() => {
+                  video.pause();
+                  scrollTimer = null;
+                }, SCROLL_STOP_DELAY);
+              }
+            }
+          },
+        });
+
+        video.currentTime = 0.001;
+        setTimeout(() => { ScrollTrigger.refresh(); }, 200);
+      } else {
+        /* ── Desktop: exact GSAP scroll scrub logic (unchanged) ── */
+        const duration = video.duration || 1;
+        const playhead = { time: 0 };
+
+        let lastVideoTime = -1;
+
+        scrubTween = gsap.to(playhead, {
+          time: duration,
+          ease: "none",
+          onUpdate: () => {
+            if (video.readyState < 2) return;
+            const diff = Math.abs(playhead.time - lastVideoTime);
+            if (diff > 0.003) {
+              lastVideoTime = playhead.time;
+              video.currentTime = playhead.time;
+            }
+          },
+          scrollTrigger: {
+            trigger: scrollSceneRef.current,
+            start: "top top",
+            end: "+=5000",
+            scrub: 1,
+            pin: true,
+            pinSpacing: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            fastScrollEnd: true,
+            onEnter: () => { inVideoRef.current = true; },
+            onLeave: () => { inVideoRef.current = false; },
+            onEnterBack: () => { inVideoRef.current = true; },
+            onUpdate: (self) => updateByProgress(self.progress),
+          },
+        });
+
+        setTimeout(() => {
+          ScrollTrigger.refresh();
+        }, 200);
+      }
     };
 
     const onLoadedMetadata = () => {
@@ -374,6 +419,7 @@ export default function App() {
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
       window.removeEventListener("resize", handleResize);
       if (scrubTween) scrubTween.kill();
+      if (scrollTriggerInstance) scrollTriggerInstance.kill();
     };
   }, []);
 
