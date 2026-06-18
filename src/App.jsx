@@ -9,10 +9,10 @@ import ContentSections from "./components/ContentSections";
 gsap.registerPlugin(ScrollTrigger);
 
 const VIDEO_STAGES = [
-  { id: "foundation", title: "FOUNDATION WORK",         range: [0, 0.2] },
-  { id: "tower-erection", title: "TOWER ERECTION",       range: [0.2, 0.4] },
-  { id: "stringing", title: "STRINGING & OPGW",          range: [0.4, 0.6] },
-  { id: "manpower", title: "MANPOWER & ENGINEERING",     range: [0.6, 1.01] },
+  { id: "foundation", title: "FOUNDATION WORK",         range: [0, 0.3] },
+  { id: "tower-erection", title: "TOWER ERECTION",       range: [0.3, 0.5] },
+  { id: "stringing", title: "STRINGING & OPGW",          range: [0.5, 0.8] },
+  { id: "manpower", title: "MANPOWER & ENGINEERING",     range: [0.8, 1.01] },
 ];
 
 const VIDEO_STAGE_MAP = {
@@ -40,7 +40,16 @@ export default function App() {
   const stageRefs      = useRef({});
   const activeStageRef = useRef(VIDEO_STAGES[0].id);
   const heroRef        = useRef(null);
+  const heroLabelsRef  = useRef(null);
+  const foundationRef  = useRef(null);
   const inVideoRef     = useRef(true);
+  const foundationAnimatedRef = useRef(false);
+  const towerErectionRef = useRef(null);
+  const towerErectionAnimatedRef = useRef(false);
+  const stringingRef = useRef(null);
+  const stringingAnimatedRef = useRef(false);
+  const manpowerRef = useRef(null);
+  const manpowerAnimatedRef = useRef(false);
 
   const [progress, setProgress]         = useState(0);
   const [activeIdx, setActiveIdx]       = useState(0);
@@ -69,13 +78,95 @@ export default function App() {
     let scrubTween, progressRaf = 0;
 
     const showStage = (nextStage) => {
-      if (activeStageRef.current === nextStage) return;
-      const currentEl = stageRefs.current[activeStageRef.current];
-      const nextEl    = stageRefs.current[nextStage];
-      if (currentEl) gsap.to(currentEl, { autoAlpha: 0, y: 12, duration: 0.3, ease: "power2.out" });
-      if (nextEl)    gsap.fromTo(nextEl, { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 0.4, ease: "power2.out" });
-      activeStageRef.current = nextStage;
-    };
+  if (activeStageRef.current === nextStage) return;
+  activeStageRef.current = nextStage;
+
+  // ভিডিও স্টেজ লেবেলগুলোর জন্য লজিক
+  VIDEO_STAGES.forEach((s) => {
+    const el = stageRefs.current[s.id];
+    if (!el) return;
+
+    if (s.id === nextStage) {
+      gsap.set(el, { display: 'block' }); // এলিমেন্ট দেখা শুরু হবে
+      gsap.fromTo(el, 
+        { autoAlpha: 0, y: 12 }, 
+        { autoAlpha: 1, y: 0, duration: 0.4, overwrite: true }
+      );
+    } else {
+      gsap.to(el, { 
+        autoAlpha: 0, 
+        y: 12, 
+        duration: 0.3, 
+        overwrite: true,
+        onComplete: () => gsap.set(el, { display: 'none' }) // হাইড হলে DOM-এর জায়গা খালি করবে
+      });
+    }
+  });
+
+  // ফাউন্ডেশন ব্লকের জন্য আলাদা লজিক
+  if (foundationRef.current) {
+    if (nextStage === "foundation") {
+      gsap.set(foundationRef.current, { display: 'block' });
+      gsap.to(foundationRef.current, { autoAlpha: 1, y: 0, duration: 0.4, overwrite: true });
+    } else {
+      gsap.to(foundationRef.current, { 
+        autoAlpha: 0, 
+        y: -20, 
+        duration: 0.3, 
+        overwrite: true,
+        onComplete: () => gsap.set(foundationRef.current, { display: 'none' }) 
+      });
+    }
+  }
+
+  // টাওয়ার ইরেকশন ব্লকের জন্য আলাদা লজিক
+  if (towerErectionRef.current) {
+    if (nextStage === "tower-erection") {
+      gsap.set(towerErectionRef.current, { display: 'block' });
+      gsap.to(towerErectionRef.current, { autoAlpha: 1, y: 0, duration: 0.4, overwrite: true });
+    } else {
+      gsap.to(towerErectionRef.current, { 
+        autoAlpha: 0, 
+        y: -20, 
+        duration: 0.3, 
+        overwrite: true,
+        onComplete: () => gsap.set(towerErectionRef.current, { display: 'none' }) 
+      });
+    }
+  }
+
+  // স্ট্রিংিং ও ওপিজিডব্লিউ ব্লকের জন্য লজিক
+  if (stringingRef.current) {
+    if (nextStage === "stringing") {
+      gsap.set(stringingRef.current, { display: 'block' });
+      gsap.to(stringingRef.current, { autoAlpha: 1, y: 0, duration: 0.4, overwrite: true });
+    } else {
+      gsap.to(stringingRef.current, { 
+        autoAlpha: 0, 
+        y: -20, 
+        duration: 0.3, 
+        overwrite: true,
+        onComplete: () => gsap.set(stringingRef.current, { display: 'none' }) 
+      });
+    }
+  }
+
+  // ম্যানপাওয়ার ও ইঞ্জিনিয়ারিং ব্লকের জন্য লজিক
+  if (manpowerRef.current) {
+    if (nextStage === "manpower") {
+      gsap.set(manpowerRef.current, { display: 'block' });
+      gsap.to(manpowerRef.current, { autoAlpha: 1, y: 0, duration: 0.4, overwrite: true });
+    } else {
+      gsap.to(manpowerRef.current, { 
+        autoAlpha: 0, 
+        y: -20, 
+        duration: 0.3, 
+        overwrite: true,
+        onComplete: () => gsap.set(manpowerRef.current, { display: 'none' }) 
+      });
+    }
+  }
+};
 
     const updateByProgress = (value) => {
       if (progressRaf) return;
@@ -84,6 +175,105 @@ export default function App() {
         setActiveIdx(getActiveVideoIndex(value));
         const stage = getActiveVideoStage(value);
         showStage(stage);
+
+        /* ── Foundation block: fade in/out based on branding visibility ── */
+        if (foundationRef.current) {
+          if (value > 0.04 && !foundationAnimatedRef.current) {
+            foundationAnimatedRef.current = true;
+            gsap.to(foundationRef.current, {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.6,
+              ease: "power2.out",
+              overwrite: true,
+            });
+          } else if (value <= 0.04 && foundationAnimatedRef.current) {
+            foundationAnimatedRef.current = false;
+            gsap.to(foundationRef.current, {
+              autoAlpha: 0,
+              y: 50,
+              duration: 0.4,
+              ease: "power2.out",
+              overwrite: true,
+            });
+          }
+        }
+
+        /* ── Tower Erection block: show/hide based on progress range [0.3, 0.5] ── */
+        if (towerErectionRef.current) {
+          if (value >= 0.3 && value <= 0.5 && !towerErectionAnimatedRef.current) {
+            towerErectionAnimatedRef.current = true;
+            gsap.set(towerErectionRef.current, { display: 'block' });
+            gsap.to(towerErectionRef.current, {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.6,
+              ease: "power2.out",
+              overwrite: true,
+            });
+          } else if ((value < 0.3 || value > 0.5) && towerErectionAnimatedRef.current) {
+            towerErectionAnimatedRef.current = false;
+            gsap.to(towerErectionRef.current, {
+              autoAlpha: 0,
+              y: 50,
+              duration: 0.4,
+              ease: "power2.out",
+              overwrite: true,
+              onComplete: () => gsap.set(towerErectionRef.current, { display: 'none' })
+            });
+          }
+        }
+
+        /* ── Stringing & OPGW block: show/hide based on progress range [0.5, 0.8] ── */
+        if (stringingRef.current) {
+          if (value >= 0.5 && value <= 0.8 && !stringingAnimatedRef.current) {
+            stringingAnimatedRef.current = true;
+            gsap.set(stringingRef.current, { display: 'block' });
+            gsap.to(stringingRef.current, {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.6,
+              ease: "power2.out",
+              overwrite: true,
+            });
+          } else if ((value < 0.5 || value > 0.8) && stringingAnimatedRef.current) {
+            stringingAnimatedRef.current = false;
+            gsap.to(stringingRef.current, {
+              autoAlpha: 0,
+              y: 50,
+              duration: 0.4,
+              ease: "power2.out",
+              overwrite: true,
+              onComplete: () => gsap.set(stringingRef.current, { display: 'none' })
+            });
+          }
+        }
+
+        /* ── Manpower & Engineering block: show/hide based on progress range [0.8, 1.01] ── */
+        if (manpowerRef.current) {
+          if (value >= 0.8 && value <= 1.01 && !manpowerAnimatedRef.current) {
+            manpowerAnimatedRef.current = true;
+            gsap.set(manpowerRef.current, { display: 'block' });
+            gsap.to(manpowerRef.current, {
+              autoAlpha: 1,
+              y: 0,
+              duration: 0.6,
+              ease: "power2.out",
+              overwrite: true,
+            });
+          } else if ((value < 0.8 || value > 1.01) && manpowerAnimatedRef.current) {
+            manpowerAnimatedRef.current = false;
+            gsap.to(manpowerRef.current, {
+              autoAlpha: 0,
+              y: 50,
+              duration: 0.4,
+              ease: "power2.out",
+              overwrite: true,
+              onComplete: () => gsap.set(manpowerRef.current, { display: 'none' })
+            });
+          }
+        }
+
         if (inVideoRef.current) {
           const mapped = value < 0.05 ? "hero" : (VIDEO_STAGE_MAP[stage] ?? "hero");
           setActiveSection(mapped);
@@ -101,10 +291,29 @@ export default function App() {
         }
       });
 
+      /* Foundation block: hidden initially — animates in after branding scrolls past */
+      if (foundationRef.current) {
+        gsap.set(foundationRef.current, { autoAlpha: 0, y: 50 });
+      }
+
+      /* Tower Erection block: hidden initially — animates in on [0.3, 0.5] range */
+      if (towerErectionRef.current) {
+        gsap.set(towerErectionRef.current, { autoAlpha: 0, y: 50, display: 'none' });
+      }
+
+      /* Stringing & OPGW block: hidden initially — animates in on [0.5, 0.8] range */
+      if (stringingRef.current) {
+        gsap.set(stringingRef.current, { autoAlpha: 0, y: 50, display: 'none' });
+      }
+
+      /* Manpower & Engineering block: hidden initially — animates in on [0.8, 1.01] range */
+      if (manpowerRef.current) {
+        gsap.set(manpowerRef.current, { autoAlpha: 0, y: 50, display: 'none' });
+      }
+
       const duration = video.duration || 1;
       const playhead = { time: 0 };
 
-      // Mobile এর জন্য end scroll distance কিছুটা কম বা বেশি লাগলে Adjust করতে পারবে (যেমন: standard 4000 থেকে 5000)
       const scrollDistance = window.innerWidth < 768 ? "+=3500" : "+=5000";
 
       scrubTween = gsap.to(playhead, {
@@ -119,10 +328,10 @@ export default function App() {
           end: scrollDistance,
           scrub: 1,
           pin: true,
-          pinSpacing: true, // নিশ্চিত করে যেন স্পেসিং ঠিক থাকে
+          pinSpacing: true,
           anticipatePin: 1,
-          invalidateOnRefresh: true, // স্ক্রিন রিসাইজ বা মোবাইল ব্রাউজার বার চেঞ্জে ক্যালকুলেশন ঠিক রাখবে
-          fastScrollEnd: true, // ফাস্ট স্ক্রল করলে পিনিং ব্রেক হওয়া আটকাবে
+          invalidateOnRefresh: true,
+          fastScrollEnd: true,
           onEnter: () => { inVideoRef.current = true; },
           onLeave: () => { inVideoRef.current = false; },
           onEnterBack: () => { inVideoRef.current = true; },
@@ -130,7 +339,6 @@ export default function App() {
         },
       });
 
-      // Timeline বিল্ড হওয়ার পর জোরপূর্বক একবার রিফ্রেশ
       setTimeout(() => {
         ScrollTrigger.refresh();
       }, 200);
@@ -148,7 +356,6 @@ export default function App() {
     if (video.readyState >= 1) onLoadedMetadata();
     else video.addEventListener("loadedmetadata", onLoadedMetadata);
 
-    // মোবাইলের orientation বা resize হ্যান্ডেল করার জন্য
     const handleResize = () => {
       ScrollTrigger.refresh();
     };
@@ -160,6 +367,30 @@ export default function App() {
       window.removeEventListener("resize", handleResize);
       if (scrubTween) scrubTween.kill();
     };
+  }, []);
+
+  /* ── Hero bottom-labels fade on scroll ── */
+  useEffect(() => {
+    const labelsEl = heroLabelsRef.current;
+    if (!labelsEl) return;
+
+    gsap.set(labelsEl, { autoAlpha: 0, y: 20 });
+
+    const st = ScrollTrigger.create({
+      trigger: labelsEl,
+      start: "top bottom",
+      end: "top top+=10%",
+      scrub: 1,
+      invalidateOnRefresh: true,
+      onUpdate: (self) => {
+        gsap.set(labelsEl, {
+          autoAlpha: self.progress,
+          y: 20 * (1 - self.progress),
+        });
+      },
+    });
+
+    return () => st.kill();
   }, []);
 
   /* ── Hero text fade on scroll ── */
@@ -273,15 +504,123 @@ export default function App() {
             </p>
           </div>
 
+          {/* ── Foundation block: left-aligned on all screens ── */}
           <div
-            className="pointer-events-none absolute bottom-6 left-4 sm:bottom-8 sm:left-8 md:bottom-12 md:left-12 z-20"
+            className="absolute left-6 sm:left-8 lg:left-20 xl:left-32 top-[45%] -translate-y-1/2 z-20 pointer-events-none max-w-[350px] lg:max-w-[400px]"
+          >
+            <div
+              ref={foundationRef}
+              className="pointer-events-auto"
+            >
+              <h2 className="text-white/90 drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
+                FOUNDATION WORK
+              </h2>
+              <p className="text-white/70 text-xs sm:text-sm md:text-base leading-relaxed mb-4">
+                Every transmission tower relies on a robust foundation. We execute precise
+                foundation engineering tailored to soil conditions, load requirements, and
+                environmental factors across diverse Indian terrains.
+              </p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSection("foundation");
+                }}
+                className="border border-white/40 text-white/80 text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
+              >
+                Our Foundation Capabilities
+              </button>
+            </div>
+          </div>
+
+          {/* ── Stringing & OPGW block: left-aligned on all screens ── */}
+          <div
+            className="absolute left-6 sm:left-8 lg:left-20 xl:left-32 top-[45%] -translate-y-1/2 z-20 pointer-events-none max-w-[350px] lg:max-w-[400px]"
+          >
+            <div
+              ref={stringingRef}
+              className="pointer-events-auto"
+            >
+              <h2 className="text-white/90 drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
+                STRINGING & OPGW
+              </h2>
+              <p className="text-white/70 text-xs sm:text-sm md:text-base leading-relaxed mb-4">
+                Conductor stringing is a high-precision operation requiring careful tension control and sag calculation. We handle both conventional ACSR/AAAC conductors and modern OPGW (Optical Power Ground Wire) installations.
+              </p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSection("stringing-opgw");
+                }}
+                className="border border-white/40 text-white/80 text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
+              >
+                Stringing Capabilities
+              </button>
+            </div>
+          </div>
+
+          {/* ── Manpower & Engineering block: left-aligned on all screens ── */}
+          <div
+            className="absolute left-6 sm:left-8 lg:left-20 xl:left-32 top-[45%] -translate-y-1/2 z-20 pointer-events-none max-w-[350px] lg:max-w-[400px]"
+          >
+            <div
+              ref={manpowerRef}
+              className="pointer-events-auto"
+            >
+              <h2 className="text-white/90 drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
+                MANPOWER & ENGINEERING
+              </h2>
+              <p className="text-white/70 text-xs sm:text-sm md:text-base leading-relaxed mb-4">
+                Beyond construction, we provide skilled technical manpower and engineering support for transmission projects across India. Our personnel are certified, experienced, and ready to deploy.
+              </p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSection("manpower");
+                }}
+                className="border border-white/40 text-white/80 text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
+              >
+                Manpower Services
+              </button>
+            </div>
+          </div>
+
+          {/* ── Tower Erection block: left-aligned on all screens ── */}
+          <div
+            className="absolute left-6 sm:left-8 lg:left-20 xl:left-32 top-[45%] -translate-y-1/2 z-20 pointer-events-none max-w-[350px] lg:max-w-[400px]"
+          >
+            <div
+              ref={towerErectionRef}
+              className="pointer-events-auto"
+            >
+              <h2 className="text-white/90 drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
+                TOWER ERECTION
+              </h2>
+              <p className="text-white/70 text-xs sm:text-sm md:text-base leading-relaxed mb-4">
+                From lattice steel towers to tubular poles, our erection teams bring decades of field experience. We follow stringent safety protocols and precision alignment procedures to ensure every structure meets design specifications.
+              </p>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToSection("tower-erection");
+                }}
+                className="border border-white/40 text-white/80 text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
+              >
+                Erection Services
+              </button>
+            </div>
+          </div>
+
+          {/* ── Other stage labels: bottom-left ── */}
+          <div
+            ref={heroLabelsRef}
+            className="absolute bottom-6 left-4 sm:bottom-8 sm:left-8 md:bottom-12 md:left-12 z-20"
             style={{ minHeight: "1.75rem" }}
           >
-            {VIDEO_STAGES.map((stage) => (
+            {VIDEO_STAGES.filter(s => s.id !== "foundation").map((stage) => (
               <div
                 key={stage.id}
                 ref={(node) => { stageRefs.current[stage.id] = node; }}
-                className="label-caps text-white/75 drop-shadow-md"
+                className="label-caps text-white/75 drop-shadow-md pointer-events-none"
               >
                 {stage.title}
               </div>

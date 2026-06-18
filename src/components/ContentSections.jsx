@@ -10,41 +10,6 @@ import DetailSection, {
 export default function ContentSections() {
   return (
     <>
-      {/* ── Foundation Work ── */}
-      <DetailSection id="foundation" headline="Foundation Work">
-        <BodyText>
-          <p>
-            Every transmission tower relies on a robust foundation. We execute precise
-            foundation engineering tailored to soil conditions, load requirements, and
-            environmental factors across diverse Indian terrains.
-          </p>
-        </BodyText>
-        <SubHeading>Our Foundation Capabilities</SubHeading>
-        <BulletList
-          items={[
-            "Soil investigation & geotechnical analysis",
-            "Pile & pad foundation design and execution",
-            "Reinforced cement concrete (RCC) works",
-            "Rock anchor & grillage foundations",
-            "Dewatering & shoring for deep excavations",
-            "Quality control with compressive strength testing",
-          ]}
-        />
-        <StatGrid
-          stats={[
-            { value: "500+", label: "Foundation Completed" },
-            { value: "25+", label: "Years Experience" },
-            { value: "15", label: "States Covered" },
-            { value: "98%", label: "On-Time Delivery" },
-          ]}
-        />
-        <HighlightBox>
-          <strong>Quality Assurance:</strong> All foundations comply with IS:456 and
-          relevant BIS standards. We maintain detailed records of mix designs, curing
-          periods, and load test results for every project.
-        </HighlightBox>
-      </DetailSection>
-
       {/* ── Tower Erection ── */}
       <DetailSection id="tower-erection" headline="Tower Erection">
         <BodyText>
