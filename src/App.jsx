@@ -76,6 +76,7 @@ export default function App() {
     if (!video || !scrollSceneRef.current) return;
 
     let scrubTween, progressRaf = 0;
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
     const showStage = (nextStage) => {
   if (activeStageRef.current === nextStage) return;
@@ -314,19 +315,26 @@ export default function App() {
       const duration = video.duration || 1;
       const playhead = { time: 0 };
 
-      const scrollDistance = window.innerWidth < 768 ? "+=3500" : "+=5000";
+      const scrollDistance = isMobile ? "+=3500" : "+=5000";
+
+      let lastVideoTime = -1;
 
       scrubTween = gsap.to(playhead, {
         time: duration,
         ease: "none",
         onUpdate: () => {
-          if (video.readyState >= 2) video.currentTime = playhead.time;
+          if (video.readyState < 2) return;
+          const diff = Math.abs(playhead.time - lastVideoTime);
+          if (diff > 0.003) {
+            lastVideoTime = playhead.time;
+            video.currentTime = playhead.time;
+          }
         },
         scrollTrigger: {
           trigger: scrollSceneRef.current,
           start: "top top",
           end: scrollDistance,
-          scrub: 5,
+          scrub: isMobile ? 2.5 : 1,
           pin: true,
           pinSpacing: true,
           anticipatePin: 1,
