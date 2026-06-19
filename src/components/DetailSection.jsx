@@ -20,6 +20,15 @@ export default function DetailSection({
     if (!section || !content) return;
 
     const ctx = gsap.context(() => {
+      // Get this section's position before deciding animation behavior
+      const trigger = ScrollTrigger.create({
+        trigger: section,
+        start: "top 80%",
+        onEnter: () => {},
+      });
+      const alreadyInView = trigger.isActive || section.getBoundingClientRect().top < window.innerHeight * 0.8;
+      trigger.kill();
+
       gsap.fromTo(
         content,
         { autoAlpha: 0, y: 40 },
@@ -28,13 +37,22 @@ export default function DetailSection({
           y: 0,
           duration: 0.5,
           ease: "power2.out",
-          scrollTrigger: {
-            trigger: section,
-            start: "top 80%",
-            toggleActions: "play none none reverse",
-          },
+          delay: alreadyInView ? 0 : 0,
+          scrollTrigger: alreadyInView
+            ? undefined
+            : {
+                trigger: section,
+                start: "top 80%",
+                toggleActions: "play none none reverse",
+              },
         }
       );
+
+      // Force a refresh after mount so ScrollTrigger recalculates
+      // positions correctly on the freshly mounted route
+      requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+      });
     }, section);
 
     return () => ctx.revert();
