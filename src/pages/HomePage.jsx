@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
+import ClientsSection from "../components/ClientsSection";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -53,12 +54,23 @@ export default function HomePage() {
   const [progress, setProgress]         = useState(0);
   const [activeIdx, setActiveIdx]       = useState(0);
 
+  const setStageRef = useCallback((id) => (node) => {
+    if (node) {
+      stageRefs.current[id] = node;
+    } else {
+      delete stageRefs.current[id];
+    }
+  }, []);
+
   /* ── Video scroll scene ── */
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !scrollSceneRef.current) return;
 
+    let ctx = gsap.context(() => {});
     let scrubTween, progressRaf = 0;
+    let metadataTimeoutId = null;
+    let refreshTimeoutId = null;
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
     const renderState = { currentTime: 0 };
     let syncTicker;
@@ -198,6 +210,7 @@ export default function HomePage() {
     };
 
     const buildTimeline = () => {
+      ctx = gsap.context(() => {
       if (isMobile) {
         ScrollTrigger.normalizeScroll(true);
       }
@@ -263,16 +276,17 @@ export default function HomePage() {
       };
       gsap.ticker.add(syncTicker);
 
-      setTimeout(() => {
+      refreshTimeoutId = setTimeout(() => {
         ScrollTrigger.refresh();
       }, 200);
+      });
     };
 
     const onLoadedMetadata = () => {
       video.pause();
       video.currentTime = 0.001;
-      setTimeout(() => { 
-        video.currentTime = 0; 
+      metadataTimeoutId = setTimeout(() => {
+        video.currentTime = 0;
         renderState.currentTime = 0;
         buildTimeline();
       }, 50);
@@ -288,10 +302,23 @@ export default function HomePage() {
 
     return () => {
       if (progressRaf) cancelAnimationFrame(progressRaf);
+      if (metadataTimeoutId) clearTimeout(metadataTimeoutId);
+      if (refreshTimeoutId) clearTimeout(refreshTimeoutId);
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
       window.removeEventListener("resize", handleResize);
       if (syncTicker) gsap.ticker.remove(syncTicker);
-      if (scrubTween) scrubTween.kill();
+
+      // Reset any inline styles GSAP applied directly to DOM nodes
+      // before React unmounts them, so React's reconciliation doesn't
+      // conflict with GSAP's manual style/display mutations
+      Object.values(stageRefs.current).forEach((el) => {
+        if (el) gsap.set(el, { clearProps: "all" });
+      });
+      [foundationRef, towerErectionRef, stringingRef, manpowerRef, heroRef].forEach((ref) => {
+        if (ref.current) gsap.set(ref.current, { clearProps: "all" });
+      });
+
+      ctx.revert(); // safely kills all tweens/ScrollTriggers from this context, cancels in-flight callbacks
     };
   }, []);
 
@@ -300,23 +327,25 @@ export default function HomePage() {
     const labelsEl = heroLabelsRef.current;
     if (!labelsEl) return;
 
-    gsap.set(labelsEl, { autoAlpha: 0, y: 20 });
+    const ctx = gsap.context(() => {
+      gsap.set(labelsEl, { autoAlpha: 0, y: 20 });
 
-    const st = ScrollTrigger.create({
-      trigger: labelsEl,
-      start: "top bottom",
-      end: "top top+=10%",
-      scrub: 1,
-      invalidateOnRefresh: true,
-      onUpdate: (self) => {
-        gsap.set(labelsEl, {
-          autoAlpha: self.progress,
-          y: 20 * (1 - self.progress),
-        });
-      },
+      ScrollTrigger.create({
+        trigger: labelsEl,
+        start: "top bottom",
+        end: "top top+=10%",
+        scrub: 1,
+        invalidateOnRefresh: true,
+        onUpdate: (self) => {
+          gsap.set(labelsEl, {
+            autoAlpha: self.progress,
+            y: 20 * (1 - self.progress),
+          });
+        },
+      });
     });
 
-    return () => st.kill();
+    return () => ctx.revert();
   }, []);
 
   const handleNavigate = (id) => {
@@ -335,9 +364,14 @@ export default function HomePage() {
 
   return (
     <>
+      {/* Pinned wrapper for GSAP scroll-triggered video scene */}
+      <div
+        ref={scrollSceneRef}
+        className="relative"
+        style={{ zIndex: 10 }}
+      >
       <section
         id="hero"
-        ref={scrollSceneRef}
         className="video-scene relative w-full h-screen overflow-hidden select-none"
         style={{ willChange: "transform" }}
       >
@@ -486,7 +520,7 @@ export default function HomePage() {
           {VIDEO_STAGES.filter(s => s.id !== "foundation").map((stage) => (
             <div
               key={stage.id}
-              ref={(node) => { stageRefs.current[stage.id] = node; }}
+              ref={setStageRef(stage.id)}
               className="label-caps text-white/75 drop-shadow-md pointer-events-none"
             >
               {stage.title}
@@ -505,6 +539,10 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      </div>
+
+      <ClientsSection />
 
       <Footer onNavigate={handleNavigate} />
     </>

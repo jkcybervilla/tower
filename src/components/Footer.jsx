@@ -1,3 +1,5 @@
+import { useEffect, useRef, forwardRef } from "react";
+
 const SERVICE_LINKS = [
   { id: "foundation", label: "Foundation Work" },
   { id: "tower-erection", label: "Tower Erection" },
@@ -38,9 +40,40 @@ function SocialIcon({ icon }) {
   );
 }
 
-export default function Footer({ onNavigate }) {
+const Footer = forwardRef(function Footer({ onNavigate }, ref) {
+  const sectionRef = useRef(null);
+
+  /* ── IntersectionObserver-based fade+slide-in reveal ── */
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add("in-view");
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(el);
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <footer className="site-footer">
+    <footer className="site-footer" ref={(node) => {
+      sectionRef.current = node;
+      if (ref) {
+        if (typeof ref === "function") ref(node);
+        else ref.current = node;
+      }
+    }}>
       <div className="footer-inner">
         <div className="footer-grid">
           <div className="footer-brand-col">
@@ -104,4 +137,6 @@ export default function Footer({ onNavigate }) {
       </div>
     </footer>
   );
-}
+});
+
+export default Footer;

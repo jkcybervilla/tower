@@ -1,9 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Footer from "./Footer";
 
 export default function DetailPageLayout({ children, sectionId }) {
   const fillRef = useRef(null);
+  const scarfRef = useRef(null);
+  const footerRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,6 +34,34 @@ export default function DetailPageLayout({ children, sectionId }) {
     };
   }, []);
 
+  /* ── Hide scarf when footer enters viewport ── */
+  const setFooterRef = useCallback((node) => {
+    if (footerRef.current && footerRef.current._observer) {
+      footerRef.current._observer.disconnect();
+    }
+    footerRef.current = node;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (scarfRef.current) {
+          scarfRef.current.classList.toggle("hidden", entry.isIntersecting);
+        }
+      },
+      { rootMargin: "-80px 0px 0px 0px" }
+    );
+    observer.observe(node);
+    node._observer = observer;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (footerRef.current && footerRef.current._observer) {
+        footerRef.current._observer.disconnect();
+      }
+    };
+  }, []);
+
   const handleNavigate = (id) => {
     const pathMap = {
       hero: "/",
@@ -48,13 +78,13 @@ export default function DetailPageLayout({ children, sectionId }) {
 
   return (
     <>
-      <div className="scroll-scarf">
+      <div className="scroll-scarf" ref={scarfRef}>
         <div className="scroll-scarf-track">
           <div className="scroll-scarf-fill" ref={fillRef} />
         </div>
       </div>
       {children}
-      <Footer onNavigate={handleNavigate} />
+      <Footer onNavigate={handleNavigate} ref={setFooterRef} />
     </>
   );
 }

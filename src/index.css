@@ -63,6 +63,19 @@ body {
   overflow: hidden;
 }
 
+/* Gradient fade from video-scene into the next section below */
+.video-scene::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 150px;
+  background: linear-gradient(to bottom, transparent, var(--charcoal));
+  pointer-events: none;
+  z-index: 25;
+}
+
 .video-fill {
   width: 100%;
   height: 100%;
@@ -619,6 +632,13 @@ body {
   box-shadow: 0 0 10px rgba(212, 175, 55, 0.45);
 }
 
+/* Hide scarf when footer is visible (to avoid overlapping hamburger) */
+.scroll-scarf.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
 /* ── Detail Sections ── */
 .section-detail {
   padding: 5rem 1.5rem;
@@ -1004,9 +1024,28 @@ body {
 
 /* ── Footer ── */
 .site-footer {
+  position: relative;
   background: #141824;
   border-top: 1px solid rgba(212, 175, 55, 0.12);
   padding: 3rem 1.5rem 2rem;
+  box-shadow: 0 -20px 40px -20px rgba(212, 175, 55, 0.08);
+  /* Soft reveal: starts hidden, fades+slides in when .in-view added */
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.site-footer.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Soft-mask top ~80px of footer so it blends into the section above */
+.site-footer {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 80px, black 100%);
+  mask-image: linear-gradient(to bottom, transparent 0px, black 80px, black 100%);
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
 }
 
 @media (min-width: 640px) {
@@ -1188,6 +1227,162 @@ body {
   }
 }
 
+/* ── Clients Section — normal document flow, revealed via IntersectionObserver ── */
+.clients-section {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--charcoal);
+  /* Soft reveal: starts hidden, fades+slides in when .in-view added */
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.clients-section.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Soft-mask top ~80px so the section fades transparently into the one above */
+.clients-section {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, black 80px, black 100%);
+  mask-image: linear-gradient(to bottom, transparent 0px, black 80px, black 100%);
+  -webkit-mask-composite: source-over;
+  mask-composite: add;
+}
+
+/* Full-bleed background image — very subtle */
+.clients-bg {
+  position: absolute;
+  inset: 0;
+  background: url("/client.jpeg") center center / cover no-repeat;
+  filter: saturate(0.3) brightness(0.35);
+  opacity: 0.6;
+}
+
+/* Dark overlay matching the theme */
+.clients-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(26, 31, 46, 0.94) 0%,
+    rgba(26, 31, 46, 0.82) 50%,
+    rgba(20, 24, 36, 0.90) 100%
+  );
+  z-index: 1;
+}
+
+.clients-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .clients-inner { padding: 5rem 2rem; }
+}
+
+@media (min-width: 1024px) {
+  .clients-inner { padding: 6rem 2rem; }
+}
+
+.clients-content {
+  text-align: left;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.clients-label {
+  color: rgba(212, 175, 55, 0.6);
+  margin-bottom: 0.5rem;
+}
+
+/* Sans-serif heading to match site style */
+.clients-headline {
+  font-family: "Montserrat", sans-serif;
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cream);
+  margin: 0 0 2.5rem;
+  line-height: 1.3;
+}
+
+/* ── Compact card grid — 6-7 columns on desktop ── */
+.clients-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+@media (min-width: 480px) {
+  .clients-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.625rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .clients-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .clients-grid {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+/* Compact, square-ish cards — no border by default */
+.client-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  height: 90px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.client-card:hover {
+  border-color: var(--gold);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Single-line compact client name */
+.client-card-name {
+  font-family: "Montserrat", sans-serif;
+  font-size: clamp(0.65rem, 0.9vw, 0.8rem);
+  font-weight: 400;
+  color: rgba(248, 247, 245, 0.7);
+  text-align: center;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .clients-inner { padding: 2.5rem 1rem; }
+  .clients-grid { gap: 0.375rem; }
+  .client-card { height: 72px; padding: 0.5rem 0.375rem; }
+  .client-card-name { font-size: 0.6rem; }
+}
+
 /* ── Accessibility ── */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -1197,6 +1392,14 @@ body {
   .hamburger-line,
   .scroll-scarf-dot,
   .mobile-scroll-dot {
+    transition: none !important;
+  }
+
+  /* No slide/fade animations for reduced motion */
+  .clients-section,
+  .site-footer {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
     transition: none !important;
   }
 }

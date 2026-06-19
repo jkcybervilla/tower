@@ -1,8 +1,6 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Sidebar from "./components/Sidebar";
 import HomePage from "./pages/HomePage";
 import FoundationPage from "./pages/FoundationPage";
@@ -36,12 +34,8 @@ function AppShell() {
     contact: "/about",
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
-    const id = requestAnimationFrame(() => {
-      ScrollTrigger.refresh();
-    });
-    return () => cancelAnimationFrame(id);
   }, [location.pathname]);
 
   const handleNavigate = (id) => {

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 // Entire‑page landmark sections (for markers on the scarf)
 const ALL_SECTIONS = [
@@ -14,6 +14,7 @@ const ALL_SECTIONS = [
 export default function ScrollProgress({ activeSection, onNavigate }) {
   const scarfRef = useRef(null);
   const fillRef  = useRef(null);
+  const footerRef = useRef(null);
 
   useEffect(() => {
     const fill = fillRef.current;
@@ -43,6 +44,37 @@ export default function ScrollProgress({ activeSection, onNavigate }) {
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  /* ── Hide scarf when footer enters viewport (Option A: IntersectionObserver) ── */
+  const setFooterRef = useCallback((node) => {
+    // Disconnect old observer
+    if (footerRef.current && footerRef.current._observer) {
+      footerRef.current._observer.disconnect();
+    }
+    footerRef.current = node;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const hidden = entry.isIntersecting;
+        if (scarfRef.current) {
+          scarfRef.current.classList.toggle("hidden", hidden);
+        }
+      },
+      { rootMargin: "-80px 0px 0px 0px" }
+    );
+    observer.observe(node);
+    // Store observer on node so we can disconnect on unmount / ref change
+    node._observer = observer;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (footerRef.current && footerRef.current._observer) {
+        footerRef.current._observer.disconnect();
+      }
     };
   }, []);
 

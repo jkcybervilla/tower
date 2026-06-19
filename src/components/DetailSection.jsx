@@ -1,8 +1,5 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-
-gsap.registerPlugin(ScrollTrigger);
 
 export default function DetailSection({
   id,
@@ -15,47 +12,20 @@ export default function DetailSection({
   const contentRef = useRef(null);
 
   useEffect(() => {
-    const section = sectionRef.current;
     const content = contentRef.current;
-    if (!section || !content) return;
+    if (!content) return;
 
-    const ctx = gsap.context(() => {
-      // Get this section's position before deciding animation behavior
-      const trigger = ScrollTrigger.create({
-        trigger: section,
-        start: "top 80%",
-        onEnter: () => {},
-      });
-      const alreadyInView = trigger.isActive || section.getBoundingClientRect().top < window.innerHeight * 0.8;
-      trigger.kill();
-
-      gsap.fromTo(
-        content,
-        { autoAlpha: 0, y: 40 },
-        {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.5,
-          ease: "power2.out",
-          delay: alreadyInView ? 0 : 0,
-          scrollTrigger: alreadyInView
-            ? undefined
-            : {
-                trigger: section,
-                start: "top 80%",
-                toggleActions: "play none none reverse",
-              },
-        }
-      );
-
-      // Force a refresh after mount so ScrollTrigger recalculates
-      // positions correctly on the freshly mounted route
-      requestAnimationFrame(() => {
-        ScrollTrigger.refresh();
-      });
-    }, section);
-
-    return () => ctx.revert();
+    gsap.fromTo(
+      content,
+      { autoAlpha: 0, y: 30 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.5,
+        ease: "power2.out",
+        delay: 0.05,
+      }
+    );
   }, []);
 
   return (
