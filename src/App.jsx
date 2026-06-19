@@ -179,100 +179,33 @@ export default function App() {
         const stage = getActiveVideoStage(value);
         showStage(stage);
 
-        /* ── Foundation block: fade in/out based on branding visibility ── */
+        /* ── Hysteresis thresholds for foundation ↔ hero crossfade ── */
+        const FOUNDATION_IN_THRESHOLD = 0.045;
+        const FOUNDATION_OUT_THRESHOLD = 0.035;
+
+        /* ── Hero title fade: use a gsap.to tween matching foundation timing ── */
+        if (heroRef.current) {
+          const heroProgress = Math.min(value / FOUNDATION_OUT_THRESHOLD, 1);
+          gsap.to(heroRef.current, {
+            opacity: 1 - heroProgress,
+            y: heroProgress * -40,
+            duration: 0.3,
+            ease: "power2.out",
+            overwrite: true,
+          });
+        }
+
+        /* ── Foundation block: hysteresis gap prevents rapid toggle near threshold ── */
         if (foundationRef.current) {
-          if (value > 0.04 && !foundationAnimatedRef.current) {
+          if (value > FOUNDATION_IN_THRESHOLD && !foundationAnimatedRef.current) {
             foundationAnimatedRef.current = true;
             gsap.to(foundationRef.current, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.6,
-              ease: "power2.out",
-              overwrite: true,
+              autoAlpha: 1, y: 0, duration: 0.3, ease: "power2.out", overwrite: true,
             });
-          } else if (value <= 0.04 && foundationAnimatedRef.current) {
+          } else if (value <= FOUNDATION_OUT_THRESHOLD && foundationAnimatedRef.current) {
             foundationAnimatedRef.current = false;
             gsap.to(foundationRef.current, {
-              autoAlpha: 0,
-              y: 50,
-              duration: 0.4,
-              ease: "power2.out",
-              overwrite: true,
-            });
-          }
-        }
-
-        /* ── Tower Erection block: show/hide based on progress range [0.3, 0.5] ── */
-        if (towerErectionRef.current) {
-          if (value >= 0.3 && value <= 0.5 && !towerErectionAnimatedRef.current) {
-            towerErectionAnimatedRef.current = true;
-            gsap.set(towerErectionRef.current, { display: 'block' });
-            gsap.to(towerErectionRef.current, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.6,
-              ease: "power2.out",
-              overwrite: true,
-            });
-          } else if ((value < 0.3 || value > 0.5) && towerErectionAnimatedRef.current) {
-            towerErectionAnimatedRef.current = false;
-            gsap.to(towerErectionRef.current, {
-              autoAlpha: 0,
-              y: 50,
-              duration: 0.4,
-              ease: "power2.out",
-              overwrite: true,
-              onComplete: () => gsap.set(towerErectionRef.current, { display: 'none' })
-            });
-          }
-        }
-
-        /* ── Stringing & OPGW block: show/hide based on progress range [0.5, 0.8] ── */
-        if (stringingRef.current) {
-          if (value >= 0.5 && value <= 0.8 && !stringingAnimatedRef.current) {
-            stringingAnimatedRef.current = true;
-            gsap.set(stringingRef.current, { display: 'block' });
-            gsap.to(stringingRef.current, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.6,
-              ease: "power2.out",
-              overwrite: true,
-            });
-          } else if ((value < 0.5 || value > 0.8) && stringingAnimatedRef.current) {
-            stringingAnimatedRef.current = false;
-            gsap.to(stringingRef.current, {
-              autoAlpha: 0,
-              y: 50,
-              duration: 0.4,
-              ease: "power2.out",
-              overwrite: true,
-              onComplete: () => gsap.set(stringingRef.current, { display: 'none' })
-            });
-          }
-        }
-
-        /* ── Manpower & Engineering block: show/hide based on progress range [0.8, 1.01] ── */
-        if (manpowerRef.current) {
-          if (value >= 0.8 && value <= 1.01 && !manpowerAnimatedRef.current) {
-            manpowerAnimatedRef.current = true;
-            gsap.set(manpowerRef.current, { display: 'block' });
-            gsap.to(manpowerRef.current, {
-              autoAlpha: 1,
-              y: 0,
-              duration: 0.6,
-              ease: "power2.out",
-              overwrite: true,
-            });
-          } else if ((value < 0.8 || value > 1.01) && manpowerAnimatedRef.current) {
-            manpowerAnimatedRef.current = false;
-            gsap.to(manpowerRef.current, {
-              autoAlpha: 0,
-              y: 50,
-              duration: 0.4,
-              ease: "power2.out",
-              overwrite: true,
-              onComplete: () => gsap.set(manpowerRef.current, { display: 'none' })
+              autoAlpha: 0, y: 50, duration: 0.3, ease: "power2.out", overwrite: true,
             });
           }
         }
@@ -286,6 +219,9 @@ export default function App() {
     };
 
     const buildTimeline = () => {
+      if (isMobile) {
+        ScrollTrigger.normalizeScroll(true);
+      }
       VIDEO_STAGES.forEach((s, i) => {
         if (stageRefs.current[s.id]) {
           gsap.set(stageRefs.current[s.id], i === 0
@@ -324,13 +260,13 @@ export default function App() {
         scrollTrigger: {
           trigger: scrollSceneRef.current,
           start: "top top",
-          end: isMobile ? "+=3500" : "+=5000",
-          scrub: isMobile ? 3.5 : 1,
+          end: isMobile ? "+=2500" : "+=5000",
+          scrub: isMobile ? 4 : 1,
           pin: true,
           pinSpacing: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
-          fastScrollEnd: !isMobile,
+          fastScrollEnd: true,
           onEnter: () => { inVideoRef.current = true; },
           onLeave: () => { inVideoRef.current = false; },
           onEnterBack: () => { inVideoRef.current = true; },
@@ -338,11 +274,11 @@ export default function App() {
         },
       });
 
-      /* ── Continuous ticker: sync video to proxy with 0.01 threshold guard ── */
+      /* ── Continuous ticker: sync video to proxy with 0.04 threshold guard ── */
       syncTicker = () => {
-        if (video.readyState < 2) return;
+        if (video.readyState < 3) return;
         const diff = Math.abs(video.currentTime - renderState.currentTime);
-        if (diff > 0.01) {
+        if (diff > 0.04) {
           video.currentTime = renderState.currentTime;
         }
       };
@@ -397,28 +333,6 @@ export default function App() {
         gsap.set(labelsEl, {
           autoAlpha: self.progress,
           y: 20 * (1 - self.progress),
-        });
-      },
-    });
-
-    return () => st.kill();
-  }, []);
-
-  /* ── Hero text fade on scroll ── */
-  useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
-
-    const st = ScrollTrigger.create({
-      trigger: hero,
-      start: "top top",
-      end: "+=40%",
-      scrub: 1,
-      invalidateOnRefresh: true,
-      onUpdate: (self) => {
-        gsap.set(hero, {
-          opacity: 1 - self.progress,
-          y: self.progress * -40,
         });
       },
     });
