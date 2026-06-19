@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const NAV_ITEMS = [
   { id: "foundation", label: "Foundation Work" },
@@ -9,7 +9,11 @@ const NAV_ITEMS = [
   { id: "contact", label: "Contact" },
 ];
 
+const SERVICE_IDS = ["foundation", "tower-erection", "stringing", "manpower"];
+
 export default function Sidebar({ isOpen, onOpen, onClose, activeSection, onNavigate }) {
+  const [servicesOpen, setServicesOpen] = useState(true);
+
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -55,7 +59,39 @@ export default function Sidebar({ isOpen, onOpen, onClose, activeSection, onNavi
         </div>
 
         <ul className="sidebar-nav">
-          {NAV_ITEMS.map((item) => (
+          <li>
+            <button
+              className={`sidebar-link sidebar-link-parent ${SERVICE_IDS.includes(activeSection) ? "active" : ""}`}
+              onClick={() => setServicesOpen((prev) => !prev)}
+              aria-expanded={servicesOpen}
+            >
+              <span className="sidebar-link-indicator" />
+              Services
+              <svg
+                className={`sidebar-accordion-icon ${servicesOpen ? "open" : ""}`}
+                width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"
+              >
+                <path d="M3.5 5.25L7 8.75L10.5 5.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <ul
+              className={`sidebar-subnav ${servicesOpen ? "open" : ""}`}
+              aria-hidden={!servicesOpen}
+            >
+              {NAV_ITEMS.filter((item) => SERVICE_IDS.includes(item.id)).map((item) => (
+                <li key={item.id}>
+                  <button
+                    className={`sidebar-link sidebar-sublink ${activeSection === item.id ? "active" : ""}`}
+                    onClick={() => handleClick(item.id)}
+                  >
+                    <span className="sidebar-link-indicator" />
+                    {item.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </li>
+          {NAV_ITEMS.filter((item) => !SERVICE_IDS.includes(item.id)).map((item) => (
             <li key={item.id}>
               <button
                 className={`sidebar-link ${activeSection === item.id ? "active" : ""}`}

@@ -1214,3 +1214,43 @@ button {
   font-family: inherit;
   cursor: pointer;
 }
+
+/* ── Sidebar Accordion (Services) ── */
+.sidebar-link-parent {
+  justify-content: space-between;
+}
+
+.sidebar-accordion-icon {
+  margin-left: auto;
+  transition: transform 0.3s ease;
+  color: rgba(248, 247, 245, 0.5);
+}
+
+.sidebar-accordion-icon.open {
+  transform: rotate(180deg);
+}
+
+.sidebar-subnav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.sidebar-subnav.open {
+  max-height: 300px;
+}
+
+.sidebar-sublink {
+  padding-left: 3rem;
+  font-size: 1rem;
+  opacity: 0.85;
+}
+
+@media (max-width: 360px) {
+  .sidebar-sublink {
+    padding-left: 4.5rem;
+  }
+}

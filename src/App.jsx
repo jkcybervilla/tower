@@ -9,10 +9,10 @@ import ContentSections from "./components/ContentSections";
 gsap.registerPlugin(ScrollTrigger);
 
 const VIDEO_STAGES = [
-  { id: "foundation", title: "FOUNDATION WORK",         range: [0, 0.3] },
-  { id: "tower-erection", title: "TOWER ERECTION",       range: [0.3, 0.5] },
-  { id: "stringing", title: "STRINGING & OPGW",          range: [0.5, 0.8] },
-  { id: "manpower", title: "MANPOWER & ENGINEERING",     range: [0.8, 1.01] },
+  { id: "foundation", title: "FOUNDATION WORK",         range: [0, 0.25] },
+  { id: "tower-erection", title: "TOWER ERECTION",       range: [0.25, 0.5] },
+  { id: "stringing", title: "STRINGING & OPGW",          range: [0.5, 0.75] },
+  { id: "manpower", title: "MANPOWER & ENGINEERING",     range: [0.75, 1.01] },
 ];
 
 const VIDEO_STAGE_MAP = {
@@ -260,8 +260,8 @@ export default function App() {
         scrollTrigger: {
           trigger: scrollSceneRef.current,
           start: "top top",
-          end: isMobile ? "+=2500" : "+=5000",
-          scrub: isMobile ? 4 : 1,
+          end: isMobile ? "+=4500" : "+=7000",
+          scrub: isMobile ? 6 : 3,
           pin: true,
           pinSpacing: true,
           anticipatePin: 1,
