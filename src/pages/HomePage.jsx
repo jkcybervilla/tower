@@ -53,6 +53,11 @@ export default function HomePage() {
 
   const [progress, setProgress]         = useState(0);
   const [activeIdx, setActiveIdx]       = useState(0);
+  const [videoSrc] = useState(() =>
+    window.matchMedia("(max-width: 768px)").matches
+      ? "/tower-mobile.mp4"
+      : "/tower-web.mp4"
+  );
 
   const setStageRef = useCallback((id) => (node) => {
     if (node) {
@@ -379,7 +384,7 @@ export default function HomePage() {
           <video
             ref={videoRef}
             className="video-fill w-full h-full object-cover"
-            src="/tower.mp4"
+            src={videoSrc}
             playsInline
             preload="metadata"
             muted
