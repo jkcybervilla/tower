@@ -21,14 +21,14 @@ export default function BootScreen({ onFinish }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+      className="fixed inset-0 z-[300] bg-black flex items-center justify-center"
       style={{
         opacity: fadeOut ? 0 : 1,
         transition: "opacity 300ms ease-out",
       }}
     >
       <DotLottieReact
-        src="/boot-animation.lottie"
+        src="/loader.lottie"
         loop
         autoplay
         style={{ width: "280px", height: "280px" }}
