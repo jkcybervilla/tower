@@ -2,9 +2,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useNavigate } from "react-router-dom";
-import Footer from "../components/Footer";
-import ClientsSection from "../components/ClientsSection";
-
 gsap.registerPlugin(ScrollTrigger);
 
 const VIDEO_STAGES = [
@@ -390,14 +387,16 @@ export default function HomePage() {
             muted
             controls={false}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/60" />
         </div>
+
+        {/* Dark overlay for consistent text legibility against video backdrop */}
+        <div className="absolute inset-0 z-10 bg-black/50" />
 
         <div
           ref={heroRef}
           className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-start pt-16 sm:pt-20 md:pt-24 px-4 sm:px-6 text-center"
         >
-          <p className="label-caps text-white/60">
+          <p className="label-caps text-white drop-shadow-sm">
             ELECTRICAL TRANSMISSION SPECIALIST
           </p>
           <h1
@@ -405,7 +404,7 @@ export default function HomePage() {
           >
             TOWER LINE INFRASTRUCTURE PVT. LTD.
           </h1>
-          <p className="font-sub mt-4 text-[9px] sm:text-xs text-white/50">
+          <p className="font-sub mt-4 text-[9px] sm:text-xs text-white drop-shadow-sm">
             END-TO-END EXECUTION · FOUNDATION TO COMMISSIONING
           </p>
         </div>
@@ -418,10 +417,10 @@ export default function HomePage() {
             ref={foundationRef}
             className="pointer-events-auto"
           >
-            <h2 className="text-white/90 drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
+            <h2 className="text-white drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
               FOUNDATION WORK
             </h2>
-            <p className="text-white/70 text-xs sm:text-sm md:text-base leading-relaxed mb-4">
+            <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed mb-4">
               Every transmission tower relies on a robust foundation. We execute precise
               foundation engineering tailored to soil conditions, load requirements, and
               environmental factors across diverse Indian terrains.
@@ -431,7 +430,7 @@ export default function HomePage() {
                 e.stopPropagation();
                 navigate("/foundation");
               }}
-              className="border border-white/40 text-white/80 text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
+              className="border border-white/40 text-white text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
             >
               Our Foundation Capabilities
             </button>
@@ -446,10 +445,10 @@ export default function HomePage() {
             ref={stringingRef}
             className="pointer-events-auto"
           >
-            <h2 className="text-white/90 drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
+            <h2 className="text-white drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
               STRINGING & OPGW
             </h2>
-            <p className="text-white/70 text-xs sm:text-sm md:text-base leading-relaxed mb-4">
+            <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed mb-4">
               Conductor stringing is a high-precision operation requiring careful tension control and sag calculation. We handle both conventional ACSR/AAAC conductors and modern OPGW (Optical Power Ground Wire) installations.
             </p>
             <button
@@ -457,7 +456,7 @@ export default function HomePage() {
                 e.stopPropagation();
                 navigate("/stringing-opgw");
               }}
-              className="border border-white/40 text-white/80 text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
+              className="border border-white/40 text-white text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
             >
               Stringing Capabilities
             </button>
@@ -472,10 +471,10 @@ export default function HomePage() {
             ref={manpowerRef}
             className="pointer-events-auto"
           >
-            <h2 className="text-white/90 drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
+            <h2 className="text-white drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
               MANPOWER & ENGINEERING
             </h2>
-            <p className="text-white/70 text-xs sm:text-sm md:text-base leading-relaxed mb-4">
+            <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed mb-4">
               Beyond construction, we provide skilled technical manpower and engineering support for transmission projects across India. Our personnel are certified, experienced, and ready to deploy.
             </p>
             <button
@@ -483,7 +482,7 @@ export default function HomePage() {
                 e.stopPropagation();
                 navigate("/manpower");
               }}
-              className="border border-white/40 text-white/80 text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
+              className="border border-white/40 text-white text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
             >
               Manpower Services
             </button>
@@ -498,10 +497,10 @@ export default function HomePage() {
             ref={towerErectionRef}
             className="pointer-events-auto"
           >
-            <h2 className="text-white/90 drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
+            <h2 className="text-white drop-shadow-md text-2xl sm:text-3xl md:text-4xl font-bold mb-3 leading-tight">
               TOWER ERECTION
             </h2>
-            <p className="text-white/70 text-xs sm:text-sm md:text-base leading-relaxed mb-4">
+            <p className="text-white text-xs sm:text-sm md:text-base leading-relaxed mb-4">
               From lattice steel towers to tubular poles, our erection teams bring decades of field experience. We follow stringent safety protocols and precision alignment procedures to ensure every structure meets design specifications.
             </p>
             <button
@@ -509,7 +508,7 @@ export default function HomePage() {
                 e.stopPropagation();
                 navigate("/tower-erection");
               }}
-              className="border border-white/40 text-white/80 text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
+              className="border border-white/40 text-white text-xs sm:text-sm px-4 py-1.5 rounded hover:bg-white/10 transition-colors cursor-pointer pointer-events-auto"
             >
               Erection Services
             </button>
@@ -526,7 +525,7 @@ export default function HomePage() {
             <div
               key={stage.id}
               ref={setStageRef(stage.id)}
-              className="label-caps text-white/75 drop-shadow-md pointer-events-none"
+              className="label-caps text-white drop-shadow-md pointer-events-none"
             >
               {stage.title}
             </div>
@@ -547,9 +546,6 @@ export default function HomePage() {
 
       </div>
 
-      <ClientsSection />
-
-      <Footer onNavigate={handleNavigate} />
     </>
   );
 }

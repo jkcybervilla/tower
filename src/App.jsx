@@ -2,6 +2,8 @@ import { useLayoutEffect } from "react";
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
+import BootScreen from "./components/BootScreen";
 import HomePage from "./pages/HomePage";
 import FoundationPage from "./pages/FoundationPage";
 import TowerErectionPage from "./pages/TowerErectionPage";
@@ -45,6 +47,7 @@ function AppShell() {
 
   return (
     <>
+      <Header />
       <Sidebar
         isOpen={sidebarOpen}
         onOpen={() => setSidebarOpen(true)}
@@ -67,8 +70,11 @@ function AppShell() {
 }
 
 export default function App() {
+  const [bootDone, setBootDone] = useState(false);
+
   return (
     <BrowserRouter>
+      {!bootDone && <BootScreen onFinish={() => setBootDone(true)} />}
       <AppShell />
     </BrowserRouter>
   );

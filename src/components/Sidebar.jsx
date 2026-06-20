@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const NAV_ITEMS = [
   { id: "foundation", label: "Foundation Work" },
@@ -12,6 +13,7 @@ const NAV_ITEMS = [
 const SERVICE_IDS = ["foundation", "tower-erection", "stringing", "manpower"];
 
 export default function Sidebar({ isOpen, onOpen, onClose, activeSection, onNavigate }) {
+  const navigate = useNavigate();
   const [servicesOpen, setServicesOpen] = useState(true);
 
   useEffect(() => {
@@ -50,7 +52,17 @@ export default function Sidebar({ isOpen, onOpen, onClose, activeSection, onNavi
         aria-hidden={!isOpen}
       >
         <div className="sidebar-header">
-          <span className="sidebar-brand">Tower Line</span>
+          <button
+            onClick={() => { navigate("/"); onClose(); }}
+            className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+            title="Go to Home"
+          >
+            <img
+              src="/logo.png"
+              alt="Company Logo"
+              className="h-6 w-auto object-contain"
+            />
+          </button>
           <button className="sidebar-close" onClick={onClose} aria-label="Close menu">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M4 4L16 16M16 4L4 16" stroke="currentColor" strokeWidth="1.5" />
