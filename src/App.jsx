@@ -1,6 +1,7 @@
 import { useLayoutEffect } from "react";
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
+import useLenis, { getLenis } from "./hooks/useLenis";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import BootScreen from "./components/BootScreen";
@@ -12,6 +13,8 @@ import ManpowerPage from "./pages/ManpowerPage";
 import AboutPage from "./pages/AboutPage";
 
 function AppShell() {
+  // Initialize smooth scroll with Lenis at the app's top level
+  useLenis();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,13 +39,22 @@ function AppShell() {
     contact: "/about",
   };
 
+  const scrollToTop = () => {
+    const lenis = getLenis();
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  };
+
   useLayoutEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
+    scrollToTop();
   }, [location.pathname]);
 
   const handleNavigate = (id) => {
     navigate(pathMap[id] || "/");
-    window.scrollTo({ top: 0, behavior: "instant" });
+    scrollToTop();
   };
 
   return (

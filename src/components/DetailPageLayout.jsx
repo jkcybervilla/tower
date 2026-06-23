@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { getLenis } from "../hooks/useLenis";
 import Footer from "./Footer";
 
 export default function DetailPageLayout({ children, sectionId }) {
@@ -73,7 +74,12 @@ export default function DetailPageLayout({ children, sectionId }) {
       contact: "/about",
     };
     navigate(pathMap[id] || "/");
-    window.scrollTo({ top: 0, behavior: "instant" });
+    const lenis = getLenis();
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
   };
 
   return (

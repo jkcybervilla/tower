@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useNavigate } from "react-router-dom";
+import { getLenis } from "../hooks/useLenis";
 gsap.registerPlugin(ScrollTrigger);
 
 const VIDEO_STAGES = [
@@ -10,6 +11,14 @@ const VIDEO_STAGES = [
   { id: "stringing", title: "STRINGING & OPGW",          range: [0.5, 0.75] },
   { id: "manpower", title: "MANPOWER & ENGINEERING",     range: [0.75, 1.01] },
 ];
+
+/* ── Damping factor for all-intra video seek smoothing ── */
+/*    0 = no movement, 1 = instant (no smoothing).          */
+/*    Low values (0.06-0.10) create a sleepy/drifting lag   */
+/*    where the video lazily glides toward the scroll       */
+/*    position instead of tightly tracking it.              */
+/*    All-intra decode means even slow catch-up is smooth.  */
+const VIDEO_SEEK_DAMPING = 0.08;
 
 const VIDEO_STAGE_MAP = {
   foundation: "foundation",
@@ -70,12 +79,12 @@ export default function HomePage() {
     if (!video || !scrollSceneRef.current) return;
 
     let ctx = gsap.context(() => {});
-    let scrubTween, progressRaf = 0;
+    let progressRaf = 0;
+    let lerpRaf = 0;
+    let targetTime = 0;
     let metadataTimeoutId = null;
     let refreshTimeoutId = null;
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    const renderState = { currentTime: 0 };
-    let syncTicker;
 
     const showStage = (nextStage) => {
   if (activeStageRef.current === nextStage) return;
@@ -176,6 +185,11 @@ export default function HomePage() {
         const stage = getActiveVideoStage(value);
         showStage(stage);
 
+        /* ── Store target time for the lerp loop below ── */
+        if (video.readyState >= 2) {
+          targetTime = value * video.duration;
+        }
+
         /* ── Hysteresis thresholds for foundation ↔ hero crossfade ── */
         const FOUNDATION_IN_THRESHOLD = 0.045;
         const FOUNDATION_OUT_THRESHOLD = 0.035;
@@ -213,9 +227,6 @@ export default function HomePage() {
 
     const buildTimeline = () => {
       ctx = gsap.context(() => {
-      if (isMobile) {
-        ScrollTrigger.normalizeScroll(true);
-      }
       VIDEO_STAGES.forEach((s, i) => {
         if (stageRefs.current[s.id]) {
           gsap.set(stageRefs.current[s.id], i === 0
@@ -244,52 +255,50 @@ export default function HomePage() {
         gsap.set(manpowerRef.current, { autoAlpha: 0, y: 50, display: 'none' });
       }
 
-      const duration = video.duration || 1;
-      renderState.currentTime = 0;
-
-      /* ── Unified proxy-based approach: GSAP scrubs renderState.currentTime ── */
-      scrubTween = gsap.to(renderState, {
-        currentTime: duration,
-        ease: "none",
-        scrollTrigger: {
-          trigger: scrollSceneRef.current,
-          start: "top top",
-          end: isMobile ? "+=4500" : "+=7000",
-          scrub: isMobile ? 6 : 3,
-          pin: true,
-          pinSpacing: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          fastScrollEnd: true,
-          onEnter: () => { inVideoRef.current = true; },
-          onLeave: () => { inVideoRef.current = false; },
-          onEnterBack: () => { inVideoRef.current = true; },
-          onUpdate: (self) => updateByProgress(self.progress),
-        },
+      /* ── ScrollTrigger: drives progress & targetTime ── */
+      /*     scrub: true → GSAP passes raw scroll progress to onUpdate with    */
+      /*     NO smoothing. All feel/damping is controlled by VIDEO_SEEK_DAMPING */
+      /*     in the rAF lerp loop below, so tweaking that constant has effect.  */
+      ScrollTrigger.create({
+        trigger: scrollSceneRef.current,
+        start: "top top",
+        end: isMobile ? "+=4500" : "+=7000",
+        scrub: true,
+        pin: true,
+        pinSpacing: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        fastScrollEnd: true,
+        onEnter: () => { inVideoRef.current = true; },
+        onLeave: () => { inVideoRef.current = false; },
+        onEnterBack: () => { inVideoRef.current = true; },
+        onUpdate: (self) => updateByProgress(self.progress),
       });
-
-      /* ── Continuous ticker: sync video to proxy with 0.04 threshold guard ── */
-      syncTicker = () => {
-        if (video.readyState < 3) return;
-        const diff = Math.abs(video.currentTime - renderState.currentTime);
-        if (diff > 0.04) {
-          video.currentTime = renderState.currentTime;
-        }
-      };
-      gsap.ticker.add(syncTicker);
 
       refreshTimeoutId = setTimeout(() => {
         ScrollTrigger.refresh();
       }, 200);
+
+      /* ── Lerp loop: smoothly glide video.currentTime toward targetTime ── */
+      const lerpTicker = () => {
+        if (video.readyState >= 2) {
+          const diff = targetTime - video.currentTime;
+          if (Math.abs(diff) > 0.001) {
+            video.currentTime += diff * VIDEO_SEEK_DAMPING;
+          }
+        }
+        lerpRaf = requestAnimationFrame(lerpTicker);
+      };
+      lerpRaf = requestAnimationFrame(lerpTicker);
       });
     };
 
     const onLoadedMetadata = () => {
+      console.log(`[HomePage] All-intra video loaded — duration: ${video.duration}s`);
       video.pause();
       video.currentTime = 0.001;
       metadataTimeoutId = setTimeout(() => {
         video.currentTime = 0;
-        renderState.currentTime = 0;
         buildTimeline();
       }, 50);
     };
@@ -304,11 +313,11 @@ export default function HomePage() {
 
     return () => {
       if (progressRaf) cancelAnimationFrame(progressRaf);
+      if (lerpRaf) cancelAnimationFrame(lerpRaf);
       if (metadataTimeoutId) clearTimeout(metadataTimeoutId);
       if (refreshTimeoutId) clearTimeout(refreshTimeoutId);
       video.removeEventListener("loadedmetadata", onLoadedMetadata);
       window.removeEventListener("resize", handleResize);
-      if (syncTicker) gsap.ticker.remove(syncTicker);
 
       // Reset any inline styles GSAP applied directly to DOM nodes
       // before React unmounts them, so React's reconciliation doesn't
@@ -361,7 +370,12 @@ export default function HomePage() {
       contact: "/about",
     };
     navigate(pathMap[id] || "/");
-    window.scrollTo({ top: 0, behavior: "instant" });
+    const lenis = getLenis();
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
   };
 
   return (
