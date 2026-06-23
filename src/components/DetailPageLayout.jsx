@@ -78,10 +78,14 @@ export default function DetailPageLayout({ children, sectionId }) {
     if (lenis) {
       lenis.scrollTo(0, { immediate: true });
     } else {
-      window.scrollTo({ top
-        <div className="scroll-scarf-track">
-          <div className="scroll-scarf-fill" ref={fillRef} />
-        </div>
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  };
+
+  return (
+    <>
+      <div className="scroll-scarf-track">
+        <div className="scroll-scarf-fill" ref={fillRef} />
       </div>
       {children}
       <Footer onNavigate={handleNavigate} ref={setFooterRef} />
