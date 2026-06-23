@@ -85,6 +85,9 @@ export default function HomePage() {
     let metadataTimeoutId = null;
     let refreshTimeoutId = null;
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    const damping = isMobile ? 0.15 : 0.08;
+    let lastTargetTime = 0;
+    let frameCount = 0;
 
     const showStage = (nextStage) => {
   if (activeStageRef.current === nextStage) return;
@@ -281,10 +284,18 @@ export default function HomePage() {
 
       /* ── Lerp loop: smoothly glide video.currentTime toward targetTime ── */
       const lerpTicker = () => {
+        frameCount++;
+        if (isMobile && frameCount % 2 !== 0) {
+          lerpRaf = requestAnimationFrame(lerpTicker);
+          return;
+        }
         if (video.readyState >= 2) {
-          const diff = targetTime - video.currentTime;
-          if (Math.abs(diff) > 0.001) {
-            video.currentTime += diff * VIDEO_SEEK_DAMPING;
+          if (Math.abs(targetTime - lastTargetTime) > 0.001) {
+            const diff = targetTime - video.currentTime;
+            if (Math.abs(diff) > 0.001) {
+              video.currentTime += diff * damping;
+            }
+            lastTargetTime = targetTime;
           }
         }
         lerpRaf = requestAnimationFrame(lerpTicker);
